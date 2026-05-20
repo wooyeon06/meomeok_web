@@ -1,0 +1,13 @@
+name = "meomeok-worker"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# 아래 명령어로 비밀값 등록:
+# wrangler secret put CLAUDE_API_KEY
+# wrangler secret put YOUTUBE_API_KEY
+
+
+[observability]
+[observability.logs]
+enabled = true
+invocation_logs = true

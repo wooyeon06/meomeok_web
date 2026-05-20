@@ -1,0 +1,192 @@
+.category-filter-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.category-filter {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.category-filter:active {
+  cursor: grabbing;
+}
+
+.category-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.category-filter-btn {
+  padding: 4px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  background: white;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.category-filter-btn.active {
+  border-color: #ff0000;
+  background: #ff0000;
+  color: white;
+}
+
+.category-filter-btn:hover:not(.active) {
+  border-color: #ff0000;
+  color: #ff0000;
+}
+
+/* 즐겨찾기 전용 필 */
+.favorites-pill {
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+.favorites-pill.active {
+  background: #ff6b35;
+  border-color: #ff6b35;
+  color: white;
+}
+
+.favorites-pill:hover:not(.active) {
+  border-color: #ff6b35;
+  color: #ff6b35;
+}
+
+/* 카테고리 추가 버튼 */
+.category-add-btn {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #e0e0e0;
+  border-radius: 50%;
+  background: white;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #666;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.category-add-btn:hover,
+.category-add-btn.open {
+  border-color: #ff0000;
+  color: #ff0000;
+}
+
+/* 카테고리 인라인 입력 */
+.category-add-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.category-add-row input {
+  flex: 1;
+  padding: 8px 14px;
+  font-size: 14px;
+  border: 2px solid #ff0000;
+  border-radius: 20px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.cat-confirm-btn,
+.cat-cancel-btn {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.2s;
+}
+
+.cat-confirm-btn {
+  background: #ff0000;
+  color: white;
+}
+
+.cat-confirm-btn:hover {
+  background: #cc0000;
+}
+
+.cat-cancel-btn {
+  background: #f0f0f0;
+  color: #666;
+}
+
+.cat-cancel-btn:hover {
+  background: #e0e0e0;
+}
+
+/* 카테고리 드래그 삭제 */
+.category-filter-btn.dragging {
+  opacity: 0.35;
+  transform: scale(0.95);
+}
+
+.cat-drag-ghost {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  background: #ff0000;
+  color: white;
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.cat-delete-zone {
+  position: fixed;
+  bottom: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 3px dashed #bbb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #bbb;
+  z-index: 9998;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.cat-delete-zone.over {
+  background: #ff3333;
+  border: 3px solid #ff3333;
+  color: white;
+  transform: translateX(-50%) scale(1.2);
+}

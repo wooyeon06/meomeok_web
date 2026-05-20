@@ -1,0 +1,299 @@
+/* 드래그 핸들 */
+.drag-handle {
+    font-size: 18px;
+    color: #ccc;
+    cursor: grab;
+    padding: 4px 6px;
+    flex-shrink: 0;
+    user-select: none;
+    touch-action: none;
+    line-height: 1;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+    color: #999;
+}
+
+/* 카드 */
+.link-item {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.link-item:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* 내부 슬라이더 */
+.link-item-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    touch-action: pan-y;
+    will-change: transform;
+}
+
+.link-item-inner.swiping {
+    transition: none;
+}
+
+/* 썸네일 */
+.link-thumbnail-wrap {
+    position: relative;
+    width: 120px;
+    height: 90px;
+    flex-shrink: 0;
+    transition: width 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.link-item-inner.swiping .link-thumbnail-wrap {
+    transition: none;
+}
+
+.link-item.revealed .link-thumbnail-wrap {
+    width: 85px;
+}
+
+.link-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+
+.link-category {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 10px;
+    color: white;
+    background: rgba(255, 0, 0, 0.82);
+    padding: 2px 7px;
+    border-radius: 8px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* 정보 */
+.link-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.link-info-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    margin-bottom: 4px;
+    padding-right: 32px;
+}
+
+.link-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    word-break: break-word;
+}
+
+.favorite-btn {
+    position: fixed;
+    right: 2%;
+    top: 10%;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+    background: transparent;
+    transition:
+        background 0.15s,
+        transform 0.15s;
+}
+
+.favorite-btn:hover {
+    /* background: #ffe0cc; */
+    transform: scale(1.12);
+}
+
+.favorite-btn.active {
+    /* background: #fff0e8; */
+}
+
+.link-url {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+    word-break: break-all;
+    line-height: 1.4;
+    max-height: 2.8em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.link-memo-preview {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    max-height: 1.4em;
+}
+
+/* 액션 버튼 — 우측에 절대 위치, 슬라이드로 노출 */
+.link-actions {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 120px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 0 8px;
+    background: linear-gradient(to right, transparent, #fff5f5 28%);
+}
+
+.edit-btn,
+.share-btn,
+.delete-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    flex-shrink: 0;
+    transition:
+        background 0.15s,
+        transform 0.15s,
+        box-shadow 0.15s;
+}
+
+.edit-btn {
+    background: #f0f5f0;
+}
+
+.edit-btn:hover {
+    background: #d4edda;
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(74, 174, 74, 0.25);
+}
+
+.edit-btn:hover svg {
+    stroke: #3a9e3a;
+}
+
+.share-btn {
+    background: #f0f5ff;
+}
+
+.share-btn:hover {
+    background: #dceaff;
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(74, 144, 226, 0.25);
+}
+
+.share-btn:hover svg {
+    stroke: #4a90e2;
+}
+
+.delete-btn {
+    background: #fff0f0;
+    font-size: 18px;
+    color: #e05555;
+    transition:
+        background 0.15s,
+        transform 0.15s,
+        box-shadow 0.15s,
+        color 0.15s;
+}
+
+.delete-btn:hover {
+    background: #ff4444;
+    color: white;
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
+}
+
+/* 드래그 리오더 */
+.link-item.dragging {
+    opacity: 0.25;
+    box-shadow: none;
+    background: #f0f0f0;
+}
+
+.link-item.dragging * {
+    visibility: hidden;
+}
+
+.link-item.drop-target {
+    box-shadow:
+        0 -3px 0 0 #ff0000,
+        0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 드래그 고스트 카드 */
+.link-card-ghost {
+    position: fixed;
+    transform: translate(-50%, -40%) scale(1.04);
+    pointer-events: none;
+    z-index: 9000;
+    background: white;
+    border-radius: 12px;
+    box-shadow:
+        0 16px 48px rgba(0, 0, 0, 0.28),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px 10px 10px;
+    max-width: 280px;
+    opacity: 0.96;
+}
+
+.ghost-thumbnail {
+    width: 80px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.ghost-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
