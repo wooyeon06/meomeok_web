@@ -76,7 +76,7 @@ export function LinkList({ onPlayVideo }: LinkListProps) {
 
   return (
     <div className="home-page">
-      <Category />
+      <Category onLinksChange={setLinks} />
 
       <div className="search-container">
         <input

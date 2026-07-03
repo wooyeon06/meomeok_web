@@ -33,6 +33,17 @@ export function deleteCategory(name: string): string[] {
   return updated;
 }
 
+// 삭제된 카테고리를 사용하던 링크들의 category를 비움(미분류 처리)
+export function clearCategoryFromLinks(name: string): YouTubeLink[] {
+  const savedLinks = localStorage.getItem(LINKS_KEY);
+  const links: YouTubeLink[] = savedLinks ? JSON.parse(savedLinks) : [];
+  const updated = links.map(link =>
+    link.category === name ? { ...link, category: undefined } : link
+  );
+  localStorage.setItem(LINKS_KEY, JSON.stringify(updated));
+  return updated;
+}
+
 export function toggleFavorite(id: string): YouTubeLink[] {
   const savedLinks = localStorage.getItem(LINKS_KEY);
   const links: YouTubeLink[] = savedLinks ? JSON.parse(savedLinks) : [];

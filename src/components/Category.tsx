@@ -1,11 +1,16 @@
 import { useState, useRef, useCallback } from 'react';
-import { ensureCategory, getCategories } from '../utils/storage';
+import type { YouTubeLink } from '../types';
+import { ensureCategory, getCategories, deleteCategory, clearCategoryFromLinks } from '../utils/storage';
 import { useCategoryContext } from '../contexts/CategoryContext';
 import { useCategoryDrag } from '../hooks/useCategoryDrag';
 import { CategoryFilterButtons } from './CategoryFilterButtons';
 import './Category.css';
 
-export default function Category() {
+interface CategoryProps {
+    onLinksChange?: (links: YouTubeLink[]) => void;
+}
+
+export default function Category({ onLinksChange }: CategoryProps) {
     const { categories, setCategories, activeFilter, setActiveFilter } = useCategoryContext();
 
     const [showCatInput, setShowCatInput] = useState(false);
@@ -17,8 +22,9 @@ export default function Category() {
     const sliderScrollStart = useRef(0);
 
     const handleDeleteCategory = useCallback((cat: string) => {
-        setCategories(categories.filter(c => c !== cat));
-    }, [categories, setCategories]);
+        setCategories(deleteCategory(cat));
+        onLinksChange?.(clearCategoryFromLinks(cat));
+    }, [setCategories, onLinksChange]);
 
     const { 
         draggingCat, 
@@ -43,7 +49,6 @@ export default function Category() {
     };
 
     const onSliderMouseDown = (e: React.MouseEvent) => {
-        debugger;
         if ((e.target as HTMLElement).closest('button')) return;
         isSliderDragging.current = true;
         sliderStartX.current = e.pageX - (sliderRef.current?.offsetLeft ?? 0);
