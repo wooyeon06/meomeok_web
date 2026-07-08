@@ -151,3 +151,70 @@
 .ingredients-textarea:focus {
   border-color: #ff6d00;
 }
+
+.transcribe-player {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+
+.transcribe-player iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.transcribe-btn {
+  margin-top: 8px;
+}
+
+.audio-option-hint {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  color: #ff6d00;
+  font-weight: 500;
+}
+
+/* 음성 분석 로딩 오버레이 */
+.analysis-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1100;
+  padding: 24px;
+  text-align: center;
+}
+
+.analysis-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ff6d00;
+  border-radius: 50%;
+  animation: analysis-spin 0.9s linear infinite;
+}
+
+@keyframes analysis-spin {
+  to { transform: rotate(360deg); }
+}
+
+.analysis-loading-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.analysis-loading-desc {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 260px;
+}

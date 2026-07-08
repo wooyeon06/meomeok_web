@@ -2,6 +2,10 @@ name = "meomeok-worker"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
+# Workers AI (Whisper 전사용)
+[ai]
+binding = "AI"
+
 # 아래 명령어로 비밀값 등록:
 # wrangler secret put CLAUDE_API_KEY
 # wrangler secret put YOUTUBE_API_KEY

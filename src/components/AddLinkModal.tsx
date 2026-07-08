@@ -6,7 +6,11 @@ import type { YouTubeLink } from "../types";
 import { generateId, getVideoId } from "../utils/utils";
 import { addLink } from "../utils/storage";
 import { useAppStore } from "../stores/appStore";
-import { analyzeIngredients } from "../utils/ingredientAnalyzer";
+import { useIngredientAnalysis } from "../hooks/useIngredientAnalysis";
+import {
+    AnalysisLoadingOverlay,
+    IngredientAnalysisControls,
+} from "./IngredientAnalysis";
 
 interface AddLinkModalProps {
     isOpen: boolean;
@@ -21,13 +25,23 @@ export function AddLinkModal({
 }: AddLinkModalProps) {
     const { setShowModal, incrementRefreshKey } = useAppStore();
     const [selectedCategory, setSelectedCategory] = useState("");
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [ingredients, setIngredients] = useState("");
-    const [analysisError, setAnalysisError] = useState("");
     const [urlValue, setUrlValue] = useState("");
     const { register, handleSubmit, reset, setValue } = useForm<YouTubeLink>();
 
-    const videoId = getVideoId(urlValue);
+    const videoId = getVideoId(urlValue) ?? "";
+    const {
+        ingredients,
+        setIngredients,
+        isAnalyzing,
+        isTranscribing,
+        analysisError,
+        showAudioOption,
+        canAudioTranscribe,
+        playerHostRef,
+        handleAnalyze,
+        handleTranscribe,
+        resetAnalysis,
+    } = useIngredientAnalysis(videoId, "", isOpen);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -45,15 +59,9 @@ export function AddLinkModal({
 
     if (!isOpen) return null;
 
-    const resetAnalysis = () => {
-        setIngredients("");
-        setAnalysisError("");
-        setIsAnalyzing(false);
-        setUrlValue("");
-    };
-
     const handleClose = () => {
         resetAnalysis();
+        setUrlValue("");
         onClose();
     };
 
@@ -64,21 +72,6 @@ export function AddLinkModal({
     };
 
     const urlRegister = register("url", { required: true });
-
-    const handleAnalyze = async () => {
-        if (!videoId) return;
-        setIsAnalyzing(true);
-        setAnalysisError("");
-        setIngredients("");
-        try {
-            const result = await analyzeIngredients(videoId);
-            setIngredients(result);
-        } catch (e) {
-            setAnalysisError(e instanceof Error ? e.message : "분석에 실패했습니다.");
-        } finally {
-            setIsAnalyzing(false);
-        }
-    };
 
     const onSubmit = (data: YouTubeLink) => {
         if (data.title.trim() && data.url.trim()) {
@@ -92,7 +85,7 @@ export function AddLinkModal({
                 title: data.title,
                 url: data.url,
                 thumbnail,
-                createdAt: new Date().toISOString(), 
+                createdAt: new Date().toISOString(),
                 /*
                 ISO 8601 형식의 문자열
                 2026-05-07 T 10:23:45.123 Z
@@ -110,11 +103,13 @@ export function AddLinkModal({
             incrementRefreshKey();
             reset();
             resetAnalysis();
+            setUrlValue("");
         }
     };
 
     return (
         <div className="modal-backdrop" onClick={handleBackdropClick}>
+            {isTranscribing && <AnalysisLoadingOverlay />}
             <div className="modal-content">
                 <h2>유튜브 링크 추가</h2>
                 <form onSubmit={handleSubmit(onSubmit)}>
@@ -141,18 +136,17 @@ export function AddLinkModal({
                         />
                     </div>
 
-                    <button
-                        type="button"
-                        className="analyze-btn"
-                        onClick={handleAnalyze}
-                        disabled={!videoId || isAnalyzing}
-                    >
-                        {isAnalyzing ? "자막 분석 중..." : "재료 자동 분석"}
-                    </button>
-
-                    {analysisError && (
-                        <p className="analysis-error">{analysisError}</p>
-                    )}
+                    <IngredientAnalysisControls
+                        videoId={videoId}
+                        isAnalyzing={isAnalyzing}
+                        isTranscribing={isTranscribing}
+                        analysisError={analysisError}
+                        showAudioOption={showAudioOption}
+                        canAudioTranscribe={canAudioTranscribe}
+                        playerHostRef={playerHostRef}
+                        onAnalyze={handleAnalyze}
+                        onTranscribe={handleTranscribe}
+                    />
 
                     {ingredients && (
                         <div className="form-group ingredients-group">

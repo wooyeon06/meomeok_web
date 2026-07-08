@@ -33,6 +33,10 @@ interface AndroidBridge {
   share(path: string, title: string): void;
   shareData(jsonData: string, title: string): void;
   notifyReady(): void;
+  // 재생 오디오 캡처 → Worker Whisper 전사 (영상 설명이 없는 영상용)
+  transcribeAudio?(workerUrl: string, durationMs: number, callbackId: string): void;
+  // 진행 중인 오디오 캡처 중단 (통화 등으로 재생 실패 시)
+  cancelTranscribe?(callbackId: string): void;
 }
 
 export interface DeepLinkPayload<T = unknown> {
@@ -41,10 +45,38 @@ export interface DeepLinkPayload<T = unknown> {
   shareText: string | null;
 }
 
+export interface NativeResult {
+  ok: boolean;
+  text?: string;
+  error?: string;
+}
+
+// YouTube IFrame Player API (음성 분석 시 재생 제어용, 최소 타입)
+export interface YTPlayer {
+  playVideo(): void;
+  pauseVideo(): void;
+  seekTo(seconds: number, allowSeekAhead?: boolean): void;
+  getDuration(): number;
+  // -1 시작안됨, 0 종료, 1 재생중, 2 일시정지, 3 버퍼링, 5 대기
+  getPlayerState(): number;
+  unMute(): void;
+  setVolume(volume: number): void;
+  destroy(): void;
+}
+
 declare global {
   interface Window {
     Android?: AndroidBridge;
     __androidDeepLink?: DeepLinkPayload;
+    // 네이티브 transcribeAudio 결과를 되돌려받는 콜백
+    __nativeResult?: (id: string, result: NativeResult) => void;
+    // 네이티브가 녹음을 시작하면 호출 → 해당 영상 재생 시작 (ingredientAnalyzer가 등록)
+    __startCapturePlayback?: (id: string) => void;
+    // YouTube IFrame API
+    YT?: {
+      Player: new (el: HTMLElement | string, opts: Record<string, unknown>) => YTPlayer;
+    };
+    onYouTubeIframeAPIReady?: () => void;
   }
 }
 

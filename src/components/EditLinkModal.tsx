@@ -3,7 +3,11 @@ import { useCategoryContext } from "../contexts/CategoryContext";
 import type { YouTubeLink } from "../types";
 import { CategorySelect } from "./CategorySelect";
 import { getVideoId } from "../utils/utils";
-import { analyzeIngredients } from "../utils/ingredientAnalyzer";
+import { useIngredientAnalysis } from "../hooks/useIngredientAnalysis";
+import {
+    AnalysisLoadingOverlay,
+    IngredientAnalysisControls,
+} from "./IngredientAnalysis";
 import "./AddLinkModal.css";
 import { useAppStore } from "../stores/appStore";
 
@@ -23,37 +27,31 @@ export function EditLinkModal({ link, onClose, onSave }: EditLinkModalProps) {
     const [title, setTitle] = useState(link?.title ?? "");
     const [url, setUrl] = useState(link?.url ?? "");
     const [category, setCategory] = useState(link?.category ?? "");
-    const [ingredients, setIngredients] = useState(link?.memo ?? "");
-    const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [analysisError, setAnalysisError] = useState("");
     const { incrementRefreshKey } = useAppStore();
 
-    if (!link) return null;
+    const videoId = getVideoId(url) ?? "";
+    const {
+        ingredients,
+        setIngredients,
+        isAnalyzing,
+        isTranscribing,
+        analysisError,
+        showAudioOption,
+        canAudioTranscribe,
+        playerHostRef,
+        handleAnalyze,
+        handleTranscribe,
+    } = useIngredientAnalysis(videoId, link?.memo ?? "");
 
-    const videoId = getVideoId(url);
+    if (!link) return null;
 
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) onClose();
     };
 
-    const handleAnalyze = async () => {
-        if (!videoId) return;
-        setIsAnalyzing(true);
-        setAnalysisError("");
-        try {
-            const result = await analyzeIngredients(videoId);
-            setIngredients(result);
-        } catch (e) {
-            setAnalysisError(
-                e instanceof Error ? e.message : "분석에 실패했습니다.",
-            );
-        } finally {
-            setIsAnalyzing(false);
-        }
-    };
-
     return (
         <div className="modal-backdrop" onClick={handleBackdropClick}>
+            {isTranscribing && <AnalysisLoadingOverlay />}
             <div className="modal-content">
                 <h2>링크 수정</h2>
                 <form
@@ -92,18 +90,17 @@ export function EditLinkModal({ link, onClose, onSave }: EditLinkModalProps) {
                         />
                     </div>
 
-                    <button
-                        type="button"
-                        className="analyze-btn"
-                        onClick={handleAnalyze}
-                        disabled={!videoId || isAnalyzing}
-                    >
-                        {isAnalyzing ? "자막 분석 중..." : "재료 자동 분석"}
-                    </button>
-
-                    {analysisError && (
-                        <p className="analysis-error">{analysisError}</p>
-                    )}
+                    <IngredientAnalysisControls
+                        videoId={videoId}
+                        isAnalyzing={isAnalyzing}
+                        isTranscribing={isTranscribing}
+                        analysisError={analysisError}
+                        showAudioOption={showAudioOption}
+                        canAudioTranscribe={canAudioTranscribe}
+                        playerHostRef={playerHostRef}
+                        onAnalyze={handleAnalyze}
+                        onTranscribe={handleTranscribe}
+                    />
 
                     <div className="form-group ingredients-group">
                         <label>

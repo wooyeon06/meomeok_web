@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Whisper 탭오디오 전사 검증</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; line-height: 1.6; }
+    h1 { font-size: 20px; }
+    ol { background: #f5f5f5; padding: 16px 16px 16px 36px; border-radius: 8px; font-size: 14px; }
+    button { font-size: 15px; padding: 10px 18px; border: 0; border-radius: 8px; cursor: pointer; margin-right: 8px; }
+    #start { background: #2563eb; color: #fff; }
+    #stop { background: #dc2626; color: #fff; }
+    button:disabled { opacity: .4; cursor: default; }
+    .box { margin-top: 16px; padding: 14px; border: 1px solid #ddd; border-radius: 8px; white-space: pre-wrap; min-height: 40px; }
+    #status { color: #2563eb; font-size: 14px; margin-top: 10px; }
+    label { font-size: 14px; }
+    iframe { width: 100%; aspect-ratio: 9/16; max-height: 480px; border: 0; border-radius: 8px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>🎙️ 탭 오디오 → Whisper 전사 검증</h1>
+
+  <ol>
+    <li><b>Chrome(크롬 계열)</b>에서 이 페이지를 여세요. (Safari/모바일은 탭 오디오 캡처 미지원)</li>
+    <li>아래 영상의 재생 버튼을 눌러 <b>소리가 나게</b> 재생하세요.</li>
+    <li><b>전사 시작</b> 클릭 → 공유 창에서 <b>"Chrome 탭 → 이 탭"</b> 선택 + 하단 <b>"탭 오디오 공유"</b> 체크 → 공유.</li>
+    <li>영상이 끝날 때까지 재생한 뒤 <b>중지 &amp; 전사</b> 클릭.</li>
+  </ol>
+
+  <label>모델:
+    <select id="model">
+      <option value="Xenova/whisper-tiny">tiny (가장 빠름·정확도 낮음, ~75MB)</option>
+      <option value="Xenova/whisper-base" selected>base (권장, ~145MB)</option>
+      <option value="Xenova/whisper-small">small (정확·느림·큼, ~480MB)</option>
+    </select>
+  </label>
+
+  <iframe
+    src="https://www.youtube.com/embed/myWT_UU3EAM"
+    allow="autoplay; encrypted-media"
+    allowfullscreen></iframe>
+
+  <div style="margin-top:16px">
+    <button id="start">전사 시작 (탭 오디오 공유)</button>
+    <button id="stop" disabled>중지 &amp; 전사</button>
+  </div>
+
+  <div id="status">대기 중…</div>
+  <h3>전사 결과</h3>
+  <div id="out" class="box"></div>
+
+  <script type="module">
+    import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+    env.allowLocalModels = false; // CDN에서 모델 로드
+
+    const startBtn = document.getElementById('start');
+    const stopBtn = document.getElementById('stop');
+    const statusEl = document.getElementById('status');
+    const outEl = document.getElementById('out');
+    const modelSel = document.getElementById('model');
+
+    let recorder, chunks = [], stream;
+    const setStatus = (t) => (statusEl.textContent = t);
+
+    startBtn.onclick = async () => {
+      chunks = [];
+      outEl.textContent = '';
+      try {
+        // preferCurrentTab: 지금 이 탭(영상 iframe 포함)을 바로 공유 대상으로 제안
+        // (Chrome은 기본적으로 캡처를 시작한 탭을 목록에서 숨기므로 이 옵션이 필요)
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true,
+          preferCurrentTab: true,
+        });
+      } catch (e) {
+        setStatus('공유 취소/실패: ' + e.message);
+        return;
+      }
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        setStatus('⚠️ 오디오 트랙이 없습니다. 공유 창에서 "탭 오디오 공유"를 체크했는지 확인하세요.');
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      recorder = new MediaRecorder(new MediaStream(audioTracks));
+      recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+      recorder.onstop = handleStop;
+      recorder.start();
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      setStatus('🔴 녹음 중… 영상을 끝까지 재생한 뒤 [중지 & 전사]를 누르세요.');
+    };
+
+    stopBtn.onclick = () => {
+      stopBtn.disabled = true;
+      recorder && recorder.state !== 'inactive' && recorder.stop();
+      stream && stream.getTracks().forEach((t) => t.stop());
+    };
+
+    async function handleStop() {
+      setStatus('🎧 오디오 디코딩 중…');
+      const blob = new Blob(chunks, { type: chunks[0]?.type || 'audio/webm' });
+      const arrbuf = await blob.arrayBuffer();
+
+      const ac = new AudioContext();
+      const decoded = await ac.decodeAudioData(arrbuf);
+
+      // 16kHz 모노로 리샘플 (Whisper 입력 형식)
+      const off = new OfflineAudioContext(1, Math.ceil(decoded.duration * 16000), 16000);
+      const src = off.createBufferSource();
+      src.buffer = decoded;
+      src.connect(off.destination);
+      src.start();
+      const rendered = await off.startRendering();
+      const pcm = rendered.getChannelData(0);
+      setStatus(`🧠 모델 로딩 & 전사 중… (오디오 ${decoded.duration.toFixed(1)}초)`);
+
+      const transcriber = await pipeline('automatic-speech-recognition', modelSel.value, {
+        progress_callback: (p) => {
+          if (p.status === 'progress' && p.file)
+            setStatus(`⬇️ 모델 다운로드 ${p.file}: ${Math.round(p.progress || 0)}%`);
+        },
+      });
+
+      const t0 = performance.now();
+      const result = await transcriber(pcm, {
+        language: 'korean',
+        task: 'transcribe',
+        chunk_length_s: 30,
+        stride_length_s: 5,
+        // 무음/BGM 구간의 "(끝끝끝)" 반복 환각 억제
+        no_repeat_ngram_size: 3,
+        condition_on_previous_text: false,
+        temperature: 0,
+      });
+      const secs = ((performance.now() - t0) / 1000).toFixed(1);
+      console.info(result);
+      outEl.textContent = (result.text || '(빈 결과)').trim();
+      setStatus(`✅ 완료 (전사 ${secs}s). 결과를 확인하세요.`);
+      startBtn.disabled = false;
+    }
+  </script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 # meomeok-worker (Cloudflare Worker)
 
-YouTube 영상의 **설명(description)** 을 가져오고, 설명이 없으면 **자막(caption)** 을 조회해서 반환하는 Worker입니다.
+YouTube 영상의 **설명(description)** 을 가져오고, 설명이 없는 영상은 앱에서 **오디오를 캡처해 Whisper로 전사한 뒤 Llama로 재료만 정리**해 반환하는 Worker입니다.
 
-- 엔드포인트: `GET /video-info?videoId=<영상ID>`
-- 응답: `{ title, description, source: "description" | "caption" }`
+- 설명 조회: `GET /video-info?videoId=<영상ID>` → `{ title, description, source: "description" }`
+- 음성 전사: `POST /transcribe` (WAV 바이트 업로드) → `{ text }` (Whisper 전사 → Llama 재료 정리)
 
 ---
 
@@ -87,6 +87,7 @@ npx wrangler tail
 
 ## 참고 / 주의사항
 
-- **자막 조회는 best-effort입니다.** YouTube는 데이터센터 IP(Cloudflare 포함)에서의 자막/watch 페이지 요청을 차단하거나 추가 토큰을 요구하는 경우가 있어, 특정 영상은 자막이 비어서 올 수 있습니다.
-- 설명이 10자 이상이면 설명을 그대로 반환하고, 그보다 짧거나 없으면 자막을 시도합니다.
-- 설명과 자막이 모두 없으면 `404` 와 함께 안내 메시지를 반환합니다.
+- 설명이 10자 이상이면 설명을 그대로 반환합니다.
+- 설명이 없거나 너무 짧으면 `404` 를 반환하며, 앱은 음성 분석(`/transcribe`)으로 유도합니다.
+- `/transcribe` 는 Workers AI(`env.AI`) 바인딩이 필요합니다. Whisper(`@cf/openai/whisper-large-v3-turbo`)로 전사한 뒤 Llama(`@cf/meta/llama-3.1-8b-instruct-fast`)로 재료만 정리합니다.
+- YouTube 자막 스크래핑은 데이터센터 IP 차단 때문에 사용하지 않습니다.
